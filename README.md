@@ -3,10 +3,10 @@
 
 
 ## Tech Stack 
-Front-end: React. js 
-Back-end:  Springboot
-Batabase:  MongoDB
-WeatherAPI : Open-meteo https://open-meteo.com
+`1. Front-end: React. js 
+2. Back-end:  Springboot
+3. Batabase:  MongoDB
+4. WeatherAPI : Open-meteo https://open-meteo.com`
 
 ## How to Run Project 
 
