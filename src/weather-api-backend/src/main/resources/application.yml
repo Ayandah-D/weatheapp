@@ -1,0 +1,41 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: weather-api
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/weatherdb}
+      database: weatherdb
+
+# OpenWeatherMap API Configuration
+weather:
+  api:
+    base-url: https://api.open-meteo.com/v1
+    geocoding-url: https://geocoding-api.open-meteo.com/v1
+    # OpenWeatherMap fallback (requires API key)
+    openweathermap-base-url: https://api.openweathermap.org/data/2.5
+    openweathermap-key: ${OPENWEATHERMAP_API_KEY:}
+  sync:
+    # Default interval in minutes for automatic sync
+    default-interval-minutes: 30
+    # Maximum age in minutes before data is considered stale
+    stale-threshold-minutes: 60
+    # Significant change threshold for conflict detection (in degrees)
+    temperature-conflict-threshold: 10.0
+
+# CORS Configuration
+cors:
+  allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://localhost:5173}
+
+# Rate Limiting
+rate-limit:
+  requests-per-minute: 60
+  requests-per-hour: 500
+
+# Logging
+logging:
+  level:
+    com.weatherapp: DEBUG
+    org.springframework.data.mongodb: INFO
