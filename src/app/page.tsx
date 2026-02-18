@@ -30,6 +30,44 @@ import {
   type GeocodingResult,
 } from "@/lib/api";
 
+// Backend API functions
+async function fetchLocations(): Promise<TrackedLocation[]> {
+  const response = await fetch('/api/locations');
+  if (!response.ok) throw new Error('Failed to fetch locations');
+  return response.json();
+}
+
+async function createLocation(city: GeocodingResult): Promise<TrackedLocation> {
+  const response = await fetch('/api/locations', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: city.name,
+      country: city.country,
+      latitude: city.latitude,
+      longitude: city.longitude,
+    }),
+  });
+  if (!response.ok) throw new Error('Failed to create location');
+  return response.json();
+}
+
+async function fetchWeatherFromBackend(locationId: string): Promise<WeatherData> {
+  const response = await fetch(`/api/weather/${locationId}`);
+  if (!response.ok) throw new Error('Failed to fetch weather');
+  return response.json();
+}
+
+async function syncLocation(locationId: string): Promise<void> {
+  const response = await fetch(`/api/sync/${locationId}`, { method: 'POST' });
+  if (!response.ok) throw new Error('Failed to sync location');
+}
+
+async function syncAllLocations(): Promise<void> {
+  const response = await fetch('/api/sync/all', { method: 'POST' });
+  if (!response.ok) throw new Error('Failed to sync all locations');
+}
+
 // Types for local state (mirrors Java DTOs)
 interface TrackedLocation {
   id: string;
@@ -86,30 +124,73 @@ export default function WeatherDashboard() {
   // Initialize default cities
   useEffect(() => {
     if (initialized) return;
-    const savedData = sessionStorage.getItem("weather-locations");
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData);
-        setLocations(parsed);
-        if (parsed.length > 0) setSelectedLocation(parsed[0]);
-        setInitialized(true);
-        return;
-      } catch { /* ignore */ }
-    }
+    
+    // First, try to fetch existing locations from backend
+    fetchLocations()
+      .then((backendLocations) => {
+        if (backendLocations.length > 0) {
+          // Use backend locations and clear session storage to avoid ID conflicts
+          setLocations(backendLocations);
+          setSelectedLocation(backendLocations[0]);
+          sessionStorage.removeItem("weather-locations"); // Clear conflicting IDs
+          setInitialized(true);
+        } else {
+          // If no backend locations, check session storage
+          const savedData = sessionStorage.getItem("weather-locations");
+          if (savedData) {
+            try {
+              const parsed = JSON.parse(savedData);
+              setLocations(parsed);
+              if (parsed.length > 0) setSelectedLocation(parsed[0]);
+              setInitialized(true);
+              return;
+            } catch { /* ignore */ }
+          }
 
-    const initial: TrackedLocation[] = DEFAULT_CITIES.map((city, i) => ({
-      id: `loc-${Date.now()}-${i}`,
-      name: city.name,
-      country: city.country,
-      latitude: city.lat,
-      longitude: city.lon,
-      favorite: i === 0,
-      lastSyncAt: null,
-      syncStatus: "NEVER_SYNCED",
-    }));
-    setLocations(initial);
-    setSelectedLocation(initial[0]);
-    setInitialized(true);
+          // If no saved data, create default cities
+          const initial: TrackedLocation[] = DEFAULT_CITIES.map((city, i) => ({
+            id: `loc-${Date.now()}-${i}`,
+            name: city.name,
+            country: city.country,
+            latitude: city.lat,
+            longitude: city.lon,
+            favorite: i === 0,
+            lastSyncAt: null,
+            syncStatus: "NEVER_SYNCED",
+          }));
+          setLocations(initial);
+          setSelectedLocation(initial[0]);
+          setInitialized(true);
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to fetch locations from backend:', error);
+        // Fallback to session storage or defaults
+        const savedData = sessionStorage.getItem("weather-locations");
+        if (savedData) {
+          try {
+            const parsed = JSON.parse(savedData);
+            setLocations(parsed);
+            if (parsed.length > 0) setSelectedLocation(parsed[0]);
+            setInitialized(true);
+            return;
+          } catch { /* ignore */ }
+        }
+
+        const initial: TrackedLocation[] = DEFAULT_CITIES.map((city, i) => ({
+          id: `loc-${Date.now()}-${i}`,
+          name: city.name,
+          country: city.country,
+          latitude: city.lat,
+          longitude: city.lon,
+          favorite: i === 0,
+          lastSyncAt: null,
+          syncStatus: "NEVER_SYNCED",
+        }));
+        setLocations(initial);
+        setSelectedLocation(initial[0]);
+        setInitialized(true);
+      });
   }, [initialized]);
 
   // Persist locations to session storage
@@ -129,7 +210,8 @@ export default function WeatherDashboard() {
     );
 
     try {
-      const data = await fetchWeatherDirect(loc.latitude, loc.longitude, units);
+      // Try to fetch from backend first
+      const data = await fetchWeatherFromBackend(loc.id);
       setWeatherMap((prev) => ({ ...prev, [loc.id]: data }));
       setLocations((prev) =>
         prev.map((l) =>
@@ -139,12 +221,26 @@ export default function WeatherDashboard() {
         )
       );
     } catch (err) {
-      console.error(`Failed to fetch weather for ${loc.name}:`, err);
-      setLocations((prev) =>
-        prev.map((l) =>
-          l.id === loc.id ? { ...l, syncStatus: "FAILED" } : l
-        )
-      );
+      console.error(`Failed to fetch weather for ${loc.name} from backend:`, err);
+      // Fallback to direct API
+      try {
+        const data = await fetchWeatherDirect(loc.latitude, loc.longitude, units);
+        setWeatherMap((prev) => ({ ...prev, [loc.id]: data }));
+        setLocations((prev) =>
+          prev.map((l) =>
+            l.id === loc.id
+              ? { ...l, syncStatus: "SUCCESS", lastSyncAt: new Date().toISOString() }
+              : l
+          )
+        );
+      } catch (directErr) {
+        console.error(`Failed to fetch weather for ${loc.name} from direct API:`, directErr);
+        setLocations((prev) =>
+          prev.map((l) =>
+            l.id === loc.id ? { ...l, syncStatus: "FAILED" } : l
+          )
+        );
+      }
     } finally {
       setLoadingIds((prev) => {
         const next = new Set(prev);
@@ -181,19 +277,27 @@ export default function WeatherDashboard() {
   };
 
   // Add a new city
-  const handleAddCity = (city: GeocodingResult) => {
-    const newLoc: TrackedLocation = {
-      id: `loc-${Date.now()}`,
-      name: city.name,
-      country: city.country,
-      latitude: city.latitude,
-      longitude: city.longitude,
-      favorite: false,
-      lastSyncAt: null,
-      syncStatus: "NEVER_SYNCED",
-    };
-    setLocations((prev) => [...prev, newLoc]);
-    fetchWeather(newLoc);
+  const handleAddCity = async (city: GeocodingResult) => {
+    try {
+      const newLoc = await createLocation(city);
+      setLocations((prev) => [...prev, newLoc]);
+      fetchWeather(newLoc);
+    } catch (error) {
+      console.error('Failed to add city:', error);
+      // Fallback to local creation if backend fails
+      const fallbackLoc: TrackedLocation = {
+        id: `loc-${Date.now()}`,
+        name: city.name,
+        country: city.country,
+        latitude: city.latitude,
+        longitude: city.longitude,
+        favorite: false,
+        lastSyncAt: null,
+        syncStatus: "NEVER_SYNCED",
+      };
+      setLocations((prev) => [...prev, fallbackLoc]);
+      fetchWeather(fallbackLoc);
+    }
   };
 
   // Delete a city

@@ -1,0 +1,20 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/weatherdb-test
+
+weather:
+  api:
+    base-url: https://api.open-meteo.com/v1
+    geocoding-url: https://geocoding-api.open-meteo.com/v1
+  sync:
+    default-interval-minutes: 60
+    stale-threshold-minutes: 120
+    temperature-conflict-threshold: 10.0
+
+rate-limit:
+  requests-per-minute: 1000
+
+logging:
+  level:
+    com.weatherapp: DEBUG

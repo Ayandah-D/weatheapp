@@ -5,6 +5,7 @@ import com.weatherapp.service.PreferenceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -34,7 +35,7 @@ public class PreferenceController {
     @PutMapping
     @Operation(summary = "Update user preferences (units, refresh interval, theme)")
     public ResponseEntity<PreferenceDTO.Response> updatePreferences(
-            @RequestBody PreferenceDTO.UpdateRequest request) {
+            @RequestBody @NonNull PreferenceDTO.UpdateRequest request) {
         return ResponseEntity.ok(preferenceService.updatePreferences(request));
     }
 }

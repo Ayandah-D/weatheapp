@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,7 +38,7 @@ public class LocationController {
     @PostMapping
     @Operation(summary = "Add a new city to track")
     public ResponseEntity<LocationDTO.Response> createLocation(
-            @Valid @RequestBody LocationDTO.CreateRequest request) {
+            @Valid @RequestBody @NonNull LocationDTO.CreateRequest request) {
         LocationDTO.Response response = locationService.createLocation(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -57,14 +58,14 @@ public class LocationController {
     @PutMapping("/{id}")
     @Operation(summary = "Update a tracked location (favorite, display name)")
     public ResponseEntity<LocationDTO.Response> updateLocation(
-            @PathVariable String id,
-            @RequestBody LocationDTO.UpdateRequest request) {
+            @PathVariable @NonNull String id,
+            @RequestBody @NonNull LocationDTO.UpdateRequest request) {
         return ResponseEntity.ok(locationService.updateLocation(id, request));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Remove a city from tracking (cascades to weather data)")
-    public ResponseEntity<Void> deleteLocation(@PathVariable String id) {
+    public ResponseEntity<Void> deleteLocation(@PathVariable @NonNull String id) {
         locationService.deleteLocation(id);
         return ResponseEntity.noContent().build();
     }

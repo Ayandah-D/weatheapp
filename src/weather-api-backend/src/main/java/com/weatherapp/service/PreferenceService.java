@@ -5,6 +5,7 @@ import com.weatherapp.model.UserPreference;
 import com.weatherapp.repository.UserPreferenceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 /**
@@ -35,7 +36,7 @@ public class PreferenceService {
     /**
      * Update user preferences. Only non-null fields are updated.
      */
-    public PreferenceDTO.Response updatePreferences(PreferenceDTO.UpdateRequest request) {
+    public PreferenceDTO.Response updatePreferences(@NonNull PreferenceDTO.UpdateRequest request) {
         UserPreference prefs = getOrCreateDefaults();
 
         if (request.getUnits() != null) {

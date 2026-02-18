@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -51,7 +52,7 @@ public class WeatherApiClient {
      * @param units "metric" or "imperial"
      * @return Parsed weather data ready for storage
      */
-    public WeatherSnapshot fetchWeatherData(double lat, double lon, String units) {
+    public WeatherSnapshot fetchWeatherData(double lat, double lon, @NonNull String units) {
         String tempUnit = "metric".equals(units) ? "celsius" : "fahrenheit";
         String windUnit = "metric".equals(units) ? "kmh" : "mph";
         String precipUnit = "metric".equals(units) ? "mm" : "inch";
@@ -109,7 +110,7 @@ public class WeatherApiClient {
      * @return List of matching location results
      */
     @Cacheable(value = "geocoding", key = "#cityName.toLowerCase()")
-    public List<GeocodingResult> searchLocations(String cityName) {
+    public List<GeocodingResult> searchLocations(@NonNull String cityName) {
         log.info("Searching locations for: {}", cityName);
 
         try {

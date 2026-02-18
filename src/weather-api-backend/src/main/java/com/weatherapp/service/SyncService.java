@@ -7,6 +7,7 @@ import com.weatherapp.repository.LocationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.lang.NonNull;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -51,7 +52,7 @@ public class SyncService {
      * @param locationId The location to sync
      * @return SyncResponse with status and details
      */
-    public WeatherDTO.SyncResponse syncLocation(String locationId) {
+    public WeatherDTO.SyncResponse syncLocation(@NonNull String locationId) {
         Location location = locationRepository.findById(locationId)
                 .orElseThrow(() -> new com.weatherapp.exception.WeatherApiException.NotFoundException("Location", locationId));
 

@@ -6,6 +6,7 @@ import com.weatherapp.service.WeatherService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,14 +33,14 @@ public class WeatherController {
     @GetMapping("/{locationId}")
     @Operation(summary = "Get the latest weather snapshot for a tracked location")
     public ResponseEntity<WeatherDTO.SnapshotResponse> getLatestWeather(
-            @PathVariable String locationId) {
+            @PathVariable @NonNull String locationId) {
         return ResponseEntity.ok(weatherService.getLatestWeather(locationId));
     }
 
     @GetMapping("/{locationId}/history")
     @Operation(summary = "Get historical weather data for a location (paginated)")
     public ResponseEntity<List<WeatherDTO.SnapshotResponse>> getWeatherHistory(
-            @PathVariable String locationId,
+            @PathVariable @NonNull String locationId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(weatherService.getWeatherHistory(locationId, page, size));
@@ -48,7 +49,7 @@ public class WeatherController {
     @GetMapping("/search/cities")
     @Operation(summary = "Search for cities using the geocoding API")
     public ResponseEntity<List<WeatherApiClient.GeocodingResult>> searchCities(
-            @RequestParam String query) {
+            @RequestParam @NonNull String query) {
         return ResponseEntity.ok(weatherService.searchCities(query));
     }
 }

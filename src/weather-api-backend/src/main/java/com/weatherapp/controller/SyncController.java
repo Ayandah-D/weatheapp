@@ -5,6 +5,7 @@ import com.weatherapp.service.SyncService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,7 +30,7 @@ public class SyncController {
 
     @PostMapping("/{locationId}")
     @Operation(summary = "Refresh weather data for a specific location on demand")
-    public ResponseEntity<WeatherDTO.SyncResponse> syncLocation(@PathVariable String locationId) {
+    public ResponseEntity<WeatherDTO.SyncResponse> syncLocation(@PathVariable @NonNull String locationId) {
         return ResponseEntity.ok(syncService.syncLocation(locationId));
     }
 

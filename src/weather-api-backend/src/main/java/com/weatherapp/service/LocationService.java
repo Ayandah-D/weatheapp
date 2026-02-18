@@ -7,6 +7,7 @@ import com.weatherapp.repository.LocationRepository;
 import com.weatherapp.repository.WeatherSnapshotRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +37,7 @@ public class LocationService {
      * CREATE - Add a new city to track.
      * Validates that the city doesn't already exist in the database.
      */
-    public LocationDTO.Response createLocation(LocationDTO.CreateRequest request) {
+    public LocationDTO.Response createLocation(@NonNull LocationDTO.CreateRequest request) {
         log.info("Creating location: {}, {}", request.getName(), request.getCountry());
 
         // Check for duplicate
@@ -103,7 +104,7 @@ public class LocationService {
     /**
      * UPDATE - Modify a tracked location (e.g., set as favorite, change display name).
      */
-    public LocationDTO.Response updateLocation(String id, LocationDTO.UpdateRequest request) {
+    public LocationDTO.Response updateLocation(@NonNull String id, @NonNull LocationDTO.UpdateRequest request) {
         Location location = findLocationOrThrow(id);
 
         if (request.getDisplayName() != null) {
@@ -124,7 +125,7 @@ public class LocationService {
      * Also deletes all associated weather snapshots (cascade).
      */
     @Transactional
-    public void deleteLocation(String id) {
+    public void deleteLocation(@NonNull String id) {
         Location location = findLocationOrThrow(id);
 
         // Cascade delete: remove all weather snapshots for this location
@@ -139,7 +140,7 @@ public class LocationService {
     // --- Internal helpers ---
 
     /** Find a location by ID or throw NotFoundException */
-    public Location findLocationOrThrow(String id) {
+    public Location findLocationOrThrow(@NonNull String id) {
         return locationRepository.findById(id)
                 .orElseThrow(() -> new WeatherApiException.NotFoundException("Location", id));
     }

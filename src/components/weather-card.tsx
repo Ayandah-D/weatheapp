@@ -60,7 +60,7 @@ interface WeatherCardProps {
   weather: WeatherData | null;
   units: string;
   loading?: boolean;
-  onSync: (id: string) => void;
+  onSync: (id: string) => Promise<void>;
   onDelete: (id: string) => void;
   onToggleFavorite: (id: string, fav: boolean) => void;
   onSelect: (location: TrackedLocation) => void;
@@ -166,15 +166,15 @@ export default function WeatherCard({
         {weather ? (
           <>
             <div className="flex items-center gap-4 mb-4">
-              {getIcon(weather.current.weather_code, 40)}
+              {getIcon(weather.current?.weather_code ?? 0, 40)}
               <div>
                 <div className="text-3xl font-bold text-foreground">
-                  {Math.round(weather.current.temperature_2m)}
+                  {Math.round(weather.current?.temperature_2m ?? 0)}
                   {"°"}
                   {tempUnit}
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {getWeatherDescription(weather.current.weather_code)}
+                  {getWeatherDescription(weather.current?.weather_code ?? 0)}
                 </p>
               </div>
             </div>
@@ -184,18 +184,18 @@ export default function WeatherCard({
                 <Thermometer size={14} className="text-primary/70" />
                 <span>
                   {"Feels "}
-                  {Math.round(weather.current.apparent_temperature)}
+                  {Math.round(weather.current?.apparent_temperature ?? 0)}
                   {"°"}
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Droplets size={14} className="text-primary/70" />
-                <span>{weather.current.relative_humidity_2m}%</span>
+                <span>{weather.current?.relative_humidity_2m ?? 0}%</span>
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Wind size={14} className="text-primary/70" />
                 <span>
-                  {Math.round(weather.current.wind_speed_10m)} {windUnit}
+                  {Math.round(weather.current?.wind_speed_10m ?? 0)} {windUnit}
                 </span>
               </div>
             </div>

@@ -4,7 +4,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -27,7 +29,7 @@ public class GlobalExceptionHandler {
     /** Handle custom WeatherApiException and its subtypes */
     @ExceptionHandler(WeatherApiException.class)
     public ResponseEntity<ErrorResponse> handleWeatherApiException(
-            WeatherApiException ex, HttpServletRequest request) {
+            @NonNull WeatherApiException ex, @NonNull HttpServletRequest request) {
 
         log.warn("WeatherApiException: {} [{}]", ex.getMessage(), ex.getErrorCode());
 
@@ -40,7 +42,7 @@ public class GlobalExceptionHandler {
                 .path(request.getRequestURI())
                 .build();
 
-        return ResponseEntity.status(ex.getStatus()).body(error);
+        return ResponseEntity.status((HttpStatusCode) ex.getStatus()).body(error);
     }
 
     /** Handle validation errors from @Valid annotations */

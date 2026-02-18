@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { searchCitiesDirect, type GeocodingResult } from "@/lib/api";
 
 interface AddCityDialogProps {
-  onAdd: (city: GeocodingResult) => void;
+  onAdd: (city: GeocodingResult) => Promise<void>;
   existingCities: Array<{ name: string; country: string }>;
 }
 
