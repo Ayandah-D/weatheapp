@@ -10,6 +10,8 @@
 
 ## How to Run Project 
 
+## To run Locally follow steps on : LOCAL_DEVELOPMENT_GUIDE.md(https://github.com/Ayandah-D/weatheapp/blob/main/LOCAL_DEVELOPMENT_GUIDE.md)
+
 ## Docker 
 
 **Prerequisites:** Install [Docker Desktop](https://www.docker.com/products/docker-desktop/)
